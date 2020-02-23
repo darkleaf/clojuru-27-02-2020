@@ -1,50 +1,420 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>reveal.js</title>
 
-		<link rel="stylesheet" href="css/reset.css">
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/white.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/monokai.css">
+    <!-- Theme used for syntax highlighting of code -->
+    <!-- <link rel="stylesheet" href="lib/css/monokai.css"> -->
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
 
-		<script src="js/reveal.js"></script>
+    <style>
+      .reveal h1,h2,h3,h4 {
+          text-transform: none !important;
+      }
+      .list-unstyled {
+          list-style-type: none !important;
+      }
+    </style>
+  </head>
+  <body>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				hash: true,
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/highlight/highlight.js' },
-					{ src: 'plugin/notes/notes.js', async: true }
-				]
-			});
-		</script>
-	</body>
+    <div class="reveal">
+      <div class="slides">
+
+        <section>
+          <h1>Алгебраические эффекты</h1>
+
+          <ul class="fa-ul list-unstyled">
+            <li><span class="fa-li"><i class="fab fa-free-code-camp"></i></span>
+              <a href="https://github.com/darkleaf/effect">github.com/darkleaf/effect</a>
+            </li>
+            <li><span class="fa-li"><i class="fas fa-user"></i></span>Михаил Кузьмин</li>
+            <li><span class="fa-li"><i class="fab fa-github"></i></span>@darkleaf</li>
+            <li><span class="fa-li"><i class="fab fa-telegram"></i></span>@kuzmin_m</li>
+          </ul>
+        </section>
+
+        <section>
+          <ul>
+            <li>Тестирование кода с эффектами</li>
+            <li>Тестирование ассинхронного кода синхронно</li>
+            <li>Неблокирующая обработка эффектов</li>
+            <li>Сохранение и восстановление вычисления</li>
+          </ul>
+        </section>
+
+        <section>
+          <p>Как тестировать?</p>
+          <pre><code data-trim data-noescape>
+            (defn new-article [title body]
+              {:id         <mark>(java.util.UUID/randomUUID)</mark>
+               :created-at <mark>(java.time.Instant/now)</mark>
+               :title      title
+               :body       body})
+
+            (new-article "Lorem ipsum" "dolor sit amet...")
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Жадная чистая функция</p>
+          <pre><code data-trim data-noescape>
+            (defn new-article [<mark>id created-at</mark> title body]
+              {:id         id
+               :created-at created-at
+               :title      title
+               :body       body})
+
+            (let [new-article* (partial new-article
+                                        <mark>(java.util.UUID/randomUUID)</mark>
+                                        <mark>(java.time.Instant/now)</mark>)]
+              (new-article* "Lorem ipsum" "dolor sit amet..."))
+          </code></pre>
+          <p>*</p>
+        </section>
+
+        <section>
+          <p>Ненужное значение</p>
+          <pre><code data-trim data-noescape>
+              (defn new-article [id created-at <mark>value</mark> title body]
+                {:id         id
+                 :created-at created-at
+                 :title      title
+                 :body       body
+                 :answer     (<mark>if</mark> (= "The Hitchhiker's Guide..." title)
+                               value
+                               0)})
+          </code></pre>
+        </section>
+
+        <section>
+          <p>ООП</p>
+          <pre><code data-trim data-noescape>
+              (defn new-article-<mark>factory</mark> [get-id get-instant]
+                (fn [title body]
+                  {:id         <mark>(get-id)</mark>
+                   :created-at (get-instant)
+                   :title      title
+                   :body       body}))
+
+              (let [get-id      #(java.util.UUID/randomUUID)
+                    get-instant #(java.time.Instant/now)
+                    new-article (new-article-factory get-id get-instant)]
+                (new-article "Lorem ipsum" "dolor sit amet..."))
+          </code></pre>
+          <p>*</p>
+        </section>
+
+        <section>
+          <p>Сложно тестировать порядок вызовов</p>
+          <pre><code data-trim data-noescape>
+              (let [log         <mark>(atom [])</mark>
+                    get-id      #(do
+                                   (<mark>swap!</mark> log conj :get-id)
+                                   (java.util.UUID/randomUUID))
+                    get-instant #(do
+                                   (<mark>swap!</mark> log conj :get-instant)
+                                   (java.time.Instant/now))
+                    new-article (new-article-factory get-id get-instant)]
+                (new-article "Lorem ipsum" "dolor sit amet...")
+                (<mark>assert</mark> (= [:get-id :get-instant] @log)))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Контекст</p>
+          <pre><code data-trim data-noescape>
+              (declare <mark>^:dynamic</mark> *get-id*
+                       ^:dynamic *get-instant*)
+
+              (defn new-article [title body]
+                {:id         <mark>(*get-id*)</mark>
+                 :created-at (*get-instant*)
+                 :title      title
+                 :body       body})
+
+              (<mark>binding</mark> [*get-id*      #(java.util.UUID/randomUUID)
+                        *get-instant* #(java.time.Instant/now)]
+                (new-article "Lorem ipsum" "dolor sit amet..."))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Эффект и продолжение</p>
+          <pre><code data-trim data-noescape>
+              (defn new-article [title body]
+                [<mark>:get-id</mark> (<mark>fn [id]</mark>
+                           [:get-instant (fn [created-at]
+                                           {:id         id
+                                            :created-at created-at
+                                            :title      title
+                                            :body       body})])])
+
+              (let [[ef-1 cont-1] (new-article "Lorem ipsum"
+                                               "dolor sit amet...")
+                    _             (assert (= :get-id ef-1))
+                    [ef-2 cont-2] <mark>(cont-1 (java.util.UUID/randomUUID))</mark>
+                    _             (assert (= :get-instant ef-2))]
+                (cont-2 (java.time.Instant/now)))
+          </code></pre>
+        </section>
+
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+        <section>
+          <p>darkleaf/effect</p>
+          <pre><code data-trim data-noescape>
+              (defn example-fn [x]
+                (<mark>with-effects</mark>
+                  (let [rnd (<mark>!</mark> (<mark>effect</mark> <mark>[:random]</mark>))]
+                    (- (* 2. x rnd) x))))
+
+              (def continuation (e/continuation example-fn))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Макрос <code>with-effects</code></p>
+          <ul>
+            <li>
+              <a href="https://github.com/leonoel/cloroutine">
+                leonoel/cloroutine
+              </a>
+            </li>
+            <li>возвращает stackless one-shot корутину</li>
+            <li>преобразует код в SSA форму</li>
+          </ul>
+        </section>
+
+        <section>
+          <p>Функция <code>e/continuation</code></p>
+          <ul>
+            <li>добавляет поддежку стека</li>
+            <li>multi-shot</li>
+          </ul>
+        </section>
+
+        <section>
+          <p>Функция <code>!</code></p>
+
+          <pre><code data-trim data-noescape>
+              ;; простое значения
+              (! 42)
+              (! [:some-value])
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              ;; вызов обычных функций
+              (! (inc 41))
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              ;; эффект
+              (! (effect [:some-effect :arg])
+              (! (effect `any-value-with-metadata-support))
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              ;; эффект как значение
+              (let [my-effect (effect [:some-effect])]
+                (! my-effect)
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              ;; вызов функции с эффектами
+              (! (some-fn! :val))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Interpretator</p>
+          <pre><code data-trim data-noescape>
+              (defn example-fn [x]
+                (with-effects
+                  (let [rnd (! effect [:random]))]
+                    (- (* 2. x rnd) x))))
+
+              (defn effect-!>coeffect [effect]
+                (match effect [:random] 0.75))
+
+              (def continuation (e/continuation example-fn))
+
+              (defn example-fn* [x]
+                (<mark>e/perform</mark> effect-!>coeffect continuation [x]))
+
+              (assert (= 0.5 (example-fn* 1)))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Script</p>
+          <pre><code data-trim data-noescape>
+              (defn example-fn [x]
+                (with-effects
+                  (let [rnd (! effect [:random]))]
+                    (- (* 2. x rnd) x))))
+
+              (let [continuation (e/continuation example-fn)
+                    script [{:args     [1]}
+                            {<mark>:effect</mark>   [:random]
+                             <mark>:coeffect</mark> 0.75}
+                            {:return   0.5}]]
+                (script/test continuation script)))))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Sync & Async</p>
+          <pre><code data-trim data-noescape>
+              (defn effect-!>coeffect [effect]
+                (match effect
+                       [:random] 0.75))
+
+              (defn f [x]
+                (e/perform effect-!>coeffect continuation [x]))
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              (defn effect-!>coeffect [effect <mark>respond raise</mark>]
+                (match effect
+                       [:random] (<mark>next-tick</mark> respond 0.75)))
+
+              (defn f [x <mark>respond raise</mark>]
+                (e/perform effect-!>coeffect
+                           continuation
+                           [x]
+                           <mark>respond raise</mark>))
+          </code></pre>
+        </section>
+
+        <section>
+          <p><code>core-analogs</code></p>
+
+          <ul>
+            <li><code>reduce!</code></li>
+            <li><code>mapv!</code></li>
+            <li><code>->!</code></li>
+            <li><code>->>!</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <p>Middleware</p>
+          <pre><code data-trim data-noescape>
+              (defn wrap-blank [<mark>continuation</mark>]
+                (when (some? continuation)
+                  (fn [coeffect]
+                    (let [[effect continuation] (continuation coeffect)]
+                      [effect (<mark>wrap-blank</mark> continuation)]))))
+
+              (def continuation (-> (e/continuation example-fn)
+                                    <mark>(wrap-blank)</mark>))
+          </code></pre>
+        </section>
+
+        <section>
+          <code>darkleaf.effect.middleware.context</code>
+          <pre><code data-trim data-noescape>
+              (defn state-example []
+                (with-effects
+                  [(! (effect [:update inc]))
+                   (! (effect [:update + 2]))
+                   (! (effect [:get]))]))
+          </code></pre>
+
+          <pre><code data-trim data-noescape>
+              (defn effect-!>coeffect [<mark>[context effect]</mark>]
+                (match effect
+                       [:get]
+                       [context (:state context)]
+
+                       [:update f & args]
+                       (let [context (apply update context :state f args)]
+                         [context (:state context)])))
+          </code></pre>
+        </section>
+
+        <section>
+          <code>darkleaf.effect.middleware.reduced</code>
+          <pre><code data-trim data-noescape>
+              (defn maybe-example [x]
+                (with-effects
+                  (+ 5 (! (effect [:maybe x])))))
+          </code></pre>
+
+          <pre><code data-trim data-noescape>
+              (defn effect->coeffect [effect]
+                (match effect
+                       [:maybe nil] (<mark>reduced</mark> nil)
+                       [:maybe val] val))
+          </code></pre>
+        </section>
+
+        <section>
+          <code>darkleaf.effect.middleware.log</code>
+          <pre><code data-trim data-noescape>
+              (defn suspend-resume-example [x]
+                (with-effects
+                  (let [a (! (effect <mark>[:suspend]</mark>))]
+                    ...)))
+          </code></pre>
+          <pre><code data-trim data-noescape>
+              (defn effect-!>coeffect [effect]
+                (match effect
+                       [:effect]  :coeffect
+                       [:suspend] <mark>::log/suspend</mark>))
+
+              (def continuation (-> (e/continuation suspend-resume-example)
+                                    (log/wrap-log)))
+
+              (assert (= [::log/suspended <mark>[{:coeffect    [:arg]</mark>
+                                            <mark>:next-effect [:suspend]}]</mark>]
+                         (e/perform effect-!>coeffect continuation [:arg])
+
+              (def continuation (-> (e/continuation ef)
+                                    (log/wrap-log)
+                                    <mark>(log/resume log)</mark>)
+          </code></pre>
+        </section>
+
+        <section>
+          <ul>
+            <li>functional core & imperative shell</li>
+            <li>логика в cljc, тесты в clj, реализация в cljs</li>
+            <li>нет дробления процесса на фукнции/события</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        hash: true,
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/highlight/highlight.js' },
+          { src: 'plugin/notes/notes.js', async: true }
+        ]
+      });
+      Reveal.configure({ slideNumber: 'c/t' });
+
+    </script>
+    <script src="https://kit.fontawesome.com/d584129e62.js" crossorigin="anonymous"></script>
+  </body>
 </html>
