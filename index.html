@@ -71,69 +71,72 @@
           </code></pre>
         </section>
 
-        <section>
-          <p>Жадная чистая функция</p>
-          <pre><code data-trim data-noescape>
-            (defn new-article [<mark>id created-at</mark> title body]
-              {:id         id
-               :created-at created-at
-               :title      title
-               :body       body})
-
-            (let [new-article* (partial new-article
-                                        <mark>(java.util.UUID/randomUUID)</mark>
-                                        <mark>(java.time.Instant/now)</mark>)]
-              (new-article* "Lorem ipsum" "dolor sit amet..."))
-          </code></pre>
-          <p>*</p>
-        </section>
 
         <section>
-          <p>Ненужное значение</p>
-          <pre><code data-trim data-noescape>
-              (defn new-article [id created-at <mark>value</mark> title body]
+          <section>
+            <p>Жадная чистая функция</p>
+            <pre><code data-trim data-noescape>
+              (defn new-article [<mark>id created-at</mark> title body]
                 {:id         id
                  :created-at created-at
                  :title      title
-                 :body       body
-                 :answer     (<mark>if</mark> (= "The Hitchhiker's Guide..." title)
-                               value
-                               0)})
-          </code></pre>
-        </section>
+                 :body       body})
 
-        <section>
-          <p>ООП</p>
-          <pre><code data-trim data-noescape>
-              (defn new-article-<mark>factory</mark> [get-id get-instant]
-                (fn [title body]
-                  {:id         <mark>(get-id)</mark>
-                   :created-at (get-instant)
+              (let [new-article* (partial new-article
+                                          <mark>(java.util.UUID/randomUUID)</mark>
+                                          <mark>(java.time.Instant/now)</mark>)]
+                (new-article* "Lorem ipsum" "dolor sit amet..."))
+            </code></pre>
+          </section>
+
+          <section>
+            <p>Ненужное значение</p>
+            <pre><code data-trim data-noescape>
+                (defn new-article [id created-at <mark>value</mark> title body]
+                  {:id         id
+                   :created-at created-at
                    :title      title
-                   :body       body}))
-
-              (let [get-id      #(java.util.UUID/randomUUID)
-                    get-instant #(java.time.Instant/now)
-                    new-article (new-article-factory get-id get-instant)]
-                (new-article "Lorem ipsum" "dolor sit amet..."))
-          </code></pre>
-          <p>*</p>
+                   :body       body
+                   :answer     (<mark>if</mark> (= "The Hitchhiker's Guide..." title)
+                                 value
+                                 0)})
+            </code></pre>
+          </section>
         </section>
 
         <section>
-          <p>Сложно тестировать порядок вызовов</p>
-          <pre><code data-trim data-noescape>
-              (let [log         <mark>(atom [])</mark>
-                    get-id      #(do
-                                   (<mark>swap!</mark> log conj :get-id)
-                                   (java.util.UUID/randomUUID))
-                    get-instant #(do
-                                   (<mark>swap!</mark> log conj :get-instant)
-                                   (java.time.Instant/now))
-                    new-article (new-article-factory get-id get-instant)]
-                (new-article "Lorem ipsum" "dolor sit amet...")
-                (<mark>assert</mark> (= [:get-id :get-instant] @log)))
-          </code></pre>
+          <section>
+            <p>ООП</p>
+            <pre><code data-trim data-noescape>
+                (defn new-article-<mark>factory</mark> [get-id get-instant]
+                  (fn [title body]
+                    {:id         <mark>(get-id)</mark>
+                     :created-at (get-instant)
+                     :title      title
+                     :body       body}))
+
+                (let [get-id      #(java.util.UUID/randomUUID)
+                      get-instant #(java.time.Instant/now)
+                      new-article (new-article-factory get-id get-instant)]
+                  (new-article "Lorem ipsum" "dolor sit amet..."))
+            </code></pre>
+          </section>
+
+          <section>
+            <p>Сложно тестировать порядок вызовов</p>
+            <pre><code data-trim data-noescape>
+                (let [log         <mark>(atom [])</mark>
+                      get-id      #(do
+                                     (<mark>swap!</mark> log conj :get-id)
+                                     (java.util.UUID/randomUUID))
+                      get-instant #(do
+                                     (<mark>swap!</mark> log conj :get-instant)
+                                     (java.time.Instant/now))
+                      new-article (new-article-factory get-id get-instant)]
+                  (new-article "Lorem ipsum" "dolor sit amet...")
+                  (<mark>assert</mark> (= [:get-id :get-instant] @log)))
+            </code></pre>
+          </section>
         </section>
 
         <section>
@@ -177,64 +180,66 @@
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
         <section>
-          <p>darkleaf/effect</p>
-          <pre><code data-trim data-noescape>
-              (defn example-fn [x]
-                (<mark>with-effects</mark>
-                  (let [rnd (<mark>!</mark> (<mark>effect</mark> <mark>[:random]</mark>))]
-                    (- (* 2. x rnd) x))))
+          <section>
+            <p>darkleaf/effect</p>
+            <pre><code data-trim data-noescape>
+                (defn example-fn [x]
+                  (<mark>with-effects</mark>
+                    (let [rnd (<mark>!</mark> (<mark>effect</mark> <mark>[:random]</mark>))]
+                      (- (* 2. x rnd) x))))
 
-              (def continuation (e/continuation example-fn))
-          </code></pre>
-        </section>
+                (def continuation (e/continuation example-fn))
+            </code></pre>
+          </section>
 
-        <section>
-          <p>Макрос <code>with-effects</code></p>
-          <ul>
-            <li>
-              <a href="https://github.com/leonoel/cloroutine">
-                leonoel/cloroutine
-              </a>
-            </li>
-            <li>возвращает stackless one-shot корутину</li>
-            <li>преобразует код в SSA форму</li>
-          </ul>
-        </section>
+          <section>
+            <p>Макрос <code>with-effects</code></p>
+            <ul>
+              <li>
+                <a href="https://github.com/leonoel/cloroutine">
+                  leonoel/cloroutine
+                </a>
+              </li>
+              <li>возвращает stackless one-shot корутину</li>
+              <li>преобразует код в SSA форму</li>
+            </ul>
+          </section>
 
-        <section>
-          <p>Функция <code>e/continuation</code></p>
-          <ul>
-            <li>добавляет поддежку стека</li>
-            <li>multi-shot</li>
-          </ul>
-        </section>
+          <section>
+            <p>Функция <code>e/continuation</code></p>
+            <ul>
+              <li>добавляет поддежку стека</li>
+              <li>multi-shot</li>
+            </ul>
+          </section>
 
-        <section>
-          <p>Функция <code>!</code></p>
+          <section>
+            <p>Функция <code>!</code></p>
 
-          <pre><code data-trim data-noescape>
-              ;; простое значения
-              (! 42)
-              (! [:some-value])
-          </code></pre>
-          <pre><code data-trim data-noescape>
-              ;; вызов обычных функций
-              (! (inc 41))
-          </code></pre>
-          <pre><code data-trim data-noescape>
-              ;; эффект
-              (! (effect [:some-effect :arg])
-              (! (effect `any-value-with-metadata-support))
-          </code></pre>
-          <pre><code data-trim data-noescape>
-              ;; эффект как значение
-              (let [my-effect (effect [:some-effect])]
-                (! my-effect)
-          </code></pre>
-          <pre><code data-trim data-noescape>
-              ;; вызов функции с эффектами
-              (! (some-fn! :val))
-          </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; простое значения
+                (! 42)
+                (! [:some-value])
+            </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; вызов обычных функций
+                (! (inc 41))
+            </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; эффект
+                (! (effect [:some-effect :arg])
+                (! (effect `any-value-with-metadata-support))
+            </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; эффект как значение
+                (let [my-effect (effect [:some-effect])]
+                  (! my-effect)
+            </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; вызов функции с эффектами
+                (! (some-fn! :val))
+            </code></pre>
+          </section>
         </section>
 
         <section>
@@ -390,8 +395,9 @@
         <section>
           <ul>
             <li>functional core & imperative shell</li>
-            <li>логика в cljc, тесты в clj, реализация в cljs</li>
+            <li>логика в cljc, тесты в clj, оболочка в cljs</li>
             <li>нет дробления процесса на фукнции/события</li>
+            <li>можно передавать вычисление в браузер и обратно</li>
           </ul>
         </section>
       </div>
