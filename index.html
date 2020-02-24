@@ -53,8 +53,8 @@
           <ul>
             <li>Тестирование кода с эффектами</li>
             <li>Тестирование ассинхронного кода синхронно</li>
-            <li>Неблокирующая обработка эффектов</li>
             <li>Сохранение и восстановление вычисления</li>
+            <li>Корутины</li>
           </ul>
         </section>
 
@@ -217,6 +217,15 @@
             <p>Функция <code>!</code></p>
 
             <pre><code data-trim data-noescape>
+                ;; эффект
+                (! (effect [:some-effect :arg])
+                (! (effect `any-value-with-metadata-support))
+            </code></pre>
+            <pre><code data-trim data-noescape>
+                ;; вызов функции с эффектами
+                (! (some-fn! :val))
+            </code></pre>
+            <pre><code data-trim data-noescape>
                 ;; простое значения
                 (! 42)
                 (! [:some-value])
@@ -226,18 +235,9 @@
                 (! (inc 41))
             </code></pre>
             <pre><code data-trim data-noescape>
-                ;; эффект
-                (! (effect [:some-effect :arg])
-                (! (effect `any-value-with-metadata-support))
-            </code></pre>
-            <pre><code data-trim data-noescape>
                 ;; эффект как значение
                 (let [my-effect (effect [:some-effect])]
                   (! my-effect)
-            </code></pre>
-            <pre><code data-trim data-noescape>
-                ;; вызов функции с эффектами
-                (! (some-fn! :val))
             </code></pre>
           </section>
         </section>
