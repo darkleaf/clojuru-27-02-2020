@@ -243,6 +243,41 @@
         </section>
 
         <section>
+          <p>real example</p>
+          <pre><code data-trim data-noescape>
+              (defn user-registration []
+                (with-effects
+                  (if (-> (! (effect [:session/get]))
+                          :current-user-id some?)
+                    (! (effect [:ui.screen/show :main]))
+                    (<mark>loop</mark> [user (make-user)]
+                      (let [user <mark>(! (effect [:ui.form/edit user]))</mark>
+                            user (validate form)]
+                        (if (has-errors? user)
+                          (<mark>recur</mark> user)
+                          (do
+                            ;; ...
+                            (! (effect [:persistence/create user])))))))))
+          </code></pre>
+        </section>
+
+        <section>
+          <p>re-frame</p>
+          <pre><code data-trim data-noescape>
+              (reg-event-fx
+                :my-event
+                (fn [<mark>cofx</mark> [_ a]]
+                  {:db       (assoc (:db cofx) :flag  a)
+                   <mark>:dispatch [:do-something-else 3]</mark>}))
+          </code></pre>
+          <ul>
+            <li>жадное вычисление коэффектов</li>
+            <li>единый процесс теряется среди разрозненных событий</li>
+          </ul>
+        </section>
+
+
+        <section>
           <p>Interpretator</p>
           <pre><code data-trim data-noescape>
               (defn example-fn [x]
@@ -250,7 +285,7 @@
                   (let [rnd (! effect [:random]))]
                     (- (* 2. x rnd) x))))
 
-              (defn effect-!>coeffect [effect]
+              (defn <mark>effect-!>coeffect</mark> [effect]
                 (match effect [:random] 0.75))
 
               (def continuation (e/continuation example-fn))
@@ -270,13 +305,25 @@
                   (let [rnd (! effect [:random]))]
                     (- (* 2. x rnd) x))))
 
-              (let [continuation (e/continuation example-fn)
-                    script [{:args     [1]}
-                            {<mark>:effect</mark>   [:random]
-                             <mark>:coeffect</mark> 0.75}
-                            {:return   0.5}]]
-                (script/test continuation script)))))
+              (<mark>deftest</mark> example-fn-test
+                (let [continuation (e/continuation example-fn)
+                      script [{:args     [1]}
+                              {<mark>:effect</mark>   [:random]
+                               <mark>:coeffect</mark> 0.75}
+                              {:return   0.5}]]
+                  (script/test continuation script))))))
           </code></pre>
+        </section>
+
+        <section>
+          <p><code>core-analogs</code></p>
+
+          <ul>
+            <li><code>reduce!</code></li>
+            <li><code>mapv!</code></li>
+            <li><code>->!</code></li>
+            <li><code>->>!</code></li>
+          </ul>
         </section>
 
         <section>
@@ -300,17 +347,6 @@
                            [x]
                            <mark>respond raise</mark>))
           </code></pre>
-        </section>
-
-        <section>
-          <p><code>core-analogs</code></p>
-
-          <ul>
-            <li><code>reduce!</code></li>
-            <li><code>mapv!</code></li>
-            <li><code>->!</code></li>
-            <li><code>->>!</code></li>
-          </ul>
         </section>
 
         <section>
@@ -399,6 +435,10 @@
             <li>нет дробления процесса на фукнции/события</li>
             <li>можно передавать вычисление в браузер и обратно</li>
           </ul>
+        </section>
+
+        <section>
+          <a href="https://github.com/darkleaf/effect">github.com/darkleaf/effect</a>
         </section>
       </div>
     </div>
