@@ -161,8 +161,8 @@
           <p>Эффект и продолжение</p>
           <pre><code data-trim data-noescape>
               (defn new-article [title body]
-                [<mark>:get-id</mark> (<mark>fn [id]</mark>
-                           [:get-instant (fn [created-at]
+                [<mark>:get-id</mark> (fn [<mark>id</mark>]
+                           [<mark>:get-instant</mark> (fn [<mark>created-at</mark>]
                                            {:id         id
                                             :created-at created-at
                                             :title      title
@@ -171,9 +171,9 @@
               (let [[ef-1 cont-1] (new-article "Lorem ipsum"
                                                "dolor sit amet...")
                     _             (assert (= :get-id ef-1))
-                    [ef-2 cont-2] <mark>(cont-1 (java.util.UUID/randomUUID))</mark>
+                    [ef-2 cont-2] (cont-1 <mark>(java.util.UUID/randomUUID)</mark>)
                     _             (assert (= :get-instant ef-2))]
-                (cont-2 (java.time.Instant/now)))
+                (cont-2 <mark>(java.time.Instant/now)</mark>))
           </code></pre>
         </section>
 
@@ -188,7 +188,7 @@
                     (let [rnd (<mark>!</mark> (<mark>effect</mark> <mark>[:random]</mark>))]
                       (- (* 2. x rnd) x))))
 
-                (def continuation (e/continuation example-fn))
+                (def continuation (<mark>e/continuation</mark> example-fn))
             </code></pre>
           </section>
 
